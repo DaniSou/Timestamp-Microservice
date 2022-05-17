@@ -4,6 +4,9 @@
 // init project
 var express = require('express');
 var app = express();
+var bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC 
@@ -24,7 +27,37 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+app.get("/api/:date?", function(req, res) {
+  if(!req.params.date){
+      const unixTime = new Date().getTime();
+      const utcTime = new Date().toUTCString();
+      res.json({"unix":unixTime,"utc":utcTime});
+  } else {
+    var timeParam = req.params.date;
+    var date = new Date(timeParam);
+    var testParam = date.toString();
+    console.log(testParam);
 
+    //If Invalid date. It could mean it's in milliseconds.
+    if(testParam == "Invalid Date"){
+
+      let reg = /^\d+$/;
+      let numbersOnlytest = reg.test(timeParam);
+      if(numbersOnlytest) {
+    
+        var parseIntDate = parseInt(timeParam);
+        let tbd = new Date(parseIntDate).toUTCString() 
+     
+        return res.json({unix : parseIntDate, utc : tbd });
+      }
+    return res.json({error : "Invalid Date" });
+    }
+    // NOT Invalid Date
+    var currentTime = date.getTime();
+    var currentUTC = date.toUTCString();
+    return res.json({unix : currentTime, utc : currentUTC });
+  }
+});
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
